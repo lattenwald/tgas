@@ -14,7 +14,7 @@ Take a look at `config/secret.exs.sample`. Copy it to `config/secret.exs`, fill 
 
 ## Installation
 
-Have `libtdjson.so` from [tdlib](https://github.com/tdlib/td) installed in your library path.
+Have `libtdjson.so` from [tdlib](https://github.com/tdlib/td) installed in your library path (tested with `v1.6.0`, should work with newer versions).
 
 Have [Rust](https://rustup.rs/) installed.
 
@@ -36,6 +36,8 @@ You'll need to authorize first. Once done authorization will not be needed anymo
     > :tdlib.phone_number :tgas, "+12345678"
     > :tdlib.auth_code :tgas, "23456"
     > :tdlib.auth_password :tgas, "yourPassword"
+
+Due to lack of motivation to do stuff properly you'll have to Ctrl+C out of there and run it again after authorization.
 
 ## Running
 
