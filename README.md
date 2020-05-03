@@ -32,7 +32,7 @@ is the location deployable archive, with `bin/tgas` being runner script.
 
 You'll need to authorize first. Once done authorization will not be needed anymore provided your `:tdlib db_dir` is not deleted.
 
-    $ tgas console
+    $ ./bin/tgas console
     > :tdlib.phone_number :tgas, "+12345678"
     > :tdlib.auth_code :tgas, "23456"
     > :tdlib.auth_password :tgas, "yourPassword"
@@ -41,6 +41,6 @@ Due to lack of motivation to do stuff properly you'll have to Ctrl+C out of ther
 
 ## Running
 
-Just use `bin/tgas` in your release. You can use it to run it daemonized, in foreground or
+Just use `./bin/tgas` in your release. You can use it to run it daemonized, in foreground or
 with `IEx` console attached; also you can connect (see `remote_console` command) to
 already running instance. Run without arguments to see available options.
