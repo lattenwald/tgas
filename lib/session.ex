@@ -27,10 +27,11 @@ defmodule Tgas.Session do
          ]}
     }
 
-
     children = [tdlib_spec, {Tgas.Handler, nil}]
 
     opts = [strategy: :rest_for_one]
+
+    :tdlib.set_log_verbosity_level(1)
 
     getMe()
 
@@ -43,8 +44,14 @@ defmodule Tgas.Session do
       :timer.sleep(1000)
       request = %{"@type" => "getMe"}
       me = send_sync(request)
-      {_, id} = List.keyfind(me, "id", 0)
-      Logger.info(fn -> "getMe id:#{id}" end)
+
+      case List.keyfind(me, "id", 0) do
+        {_, id} ->
+          Logger.info(fn -> "getMe id:#{id}" end)
+
+        nil ->
+          Logger.warn(fn -> "No connection or no authorization" end)
+      end
     end)
   end
 
@@ -59,5 +66,4 @@ defmodule Tgas.Session do
   def phone_number(phone_number), do: :tdlib.phone_number(@session, phone_number)
   def auth_code(code), do: :tdlib.auth_code(@session, code)
   def auth_password(password), do: :tdlib.auth_password(@session, password)
-
 end

@@ -28,3 +28,4 @@ tgas-*.tar
 /db
 /log
 /messages.log
+/.elixir_ls
