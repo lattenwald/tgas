@@ -131,7 +131,7 @@ defmodule Tgas.Handler do
   def utf16_len(text), do: utf16_len(text, 0)
   defp utf16_len(<<>>, len), do: len
   defp utf16_len(<<char::utf8, rest::binary>>, len) do
-    size = trunc(byte_size(<<char::utf16) / 2)
+    size = trunc(byte_size(<<char::utf16>>) / 2)
     utf16_len(rest, len + size)
   end
 
