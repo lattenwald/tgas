@@ -65,8 +65,8 @@ defmodule Tgas.Handler do
                })
              ),
            1 <- history["total_count"] do
-        Logger.info(fn -> "message: #{inspect(data)}" end)
-        Logger.info(fn -> "from user: #{inspect(user)}" end)
+        Logger.info(fn -> "message: #{message["id"]}" end)
+        Logger.info(fn -> "from user: #{user_id}" end)
 
         new_on_sent =
           case save_to_spam(user, message["id"]) do
@@ -77,7 +77,7 @@ defmodule Tgas.Handler do
               on_sent
           end
 
-        Tgas.Session.send_sync(%{
+        Tgas.Session.send(%{
           "@type" => "deleteChatHistory",
           "chat_id" => user_id,
           "remove_from_chat_list" => true,
@@ -130,8 +130,10 @@ defmodule Tgas.Handler do
 
   def utf16_len(text), do: utf16_len(text, 0)
   defp utf16_len(<<>>, len), do: len
-  defp utf16_len(<<_::utf16, rest::binary>>, len), do: utf16_len(rest, len + 2)
-  defp utf16_len(<<_::utf8, rest::binary>>, len), do: utf16_len(rest, len + 1)
+  defp utf16_len(<<char::utf8, rest::binary>>, len) do
+    size = trunc(byte_size(<<char::utf16) / 2)
+    utf16_len(rest, len + size)
+  end
 
   defp save_to_spam(_, _) when is_nil(@spam), do: nil
 
@@ -149,32 +151,35 @@ defmodule Tgas.Handler do
       )
 
     msg_id = hd(forwarded["messages"])["id"]
-    Logger.info(fn -> "forwarded: #{inspect(forwarded)}" end)
+    Logger.info(fn -> "forwarded: #{msg_id}" end)
 
     reaction = fn
       %{"message" => %{"id" => msg_id}} ->
         text = Poison.encode!(user, pretty: true)
 
-        Tgas.Session.send_sync(%{
-          "@type" => "sendMessage",
-          "chat_id" => @spam,
-          "reply_to_message_id" => msg_id,
-          "input_message_content" => %{
-            "@type" => "inputMessageText",
-            "text" => %{
-              "@type" => "formattedText",
-              "text" => text,
-              "entities" => [
-                %{
-                  "@type" => "textEntity",
-                  "offset" => 0,
-                  "length" => utf16_len(text),
-                  "type" => %{"@type" => "textEntityTypePreCode"}
-                }
-              ]
+        reply =
+          Tgas.Session.send_sync(%{
+            "@type" => "sendMessage",
+            "chat_id" => @spam,
+            "reply_to_message_id" => msg_id,
+            "input_message_content" => %{
+              "@type" => "inputMessageText",
+              "text" => %{
+                "@type" => "formattedText",
+                "text" => text,
+                "entities" => [
+                  %{
+                    "@type" => "textEntity",
+                    "offset" => 0,
+                    "length" => utf16_len(text),
+                    "type" => %{"@type" => "textEntityTypePreCode"}
+                  }
+                ]
+              }
             }
-          }
-        })
+          })
+
+        Logger.info(fn -> "sent user description: #{inspect(reply)}" end)
     end
 
     {msg_id, reaction}
