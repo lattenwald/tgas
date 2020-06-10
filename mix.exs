@@ -4,10 +4,12 @@ defmodule Tgas.MixProject do
   def project do
     [
       app: :tgas,
-      version: "0.1.2",
+      version: "0.2.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      default_release: :prod,
+      releases: releases()
     ]
   end
 
@@ -22,11 +24,23 @@ defmodule Tgas.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
-      {:tdlib, git: "https://github.com/lattenwald/erl-tdlib.git", tag: "v0.3.2"},
+      {:tdlib, git: "https://github.com/lattenwald/erl-tdlib.git", tag: "v0.3.3"},
       {:poison, "~> 4.0"},
-      {:distillery, "~> 2.1"}
+      {:toml_config_provider, "~> 0.2.0"}
+    ]
+  end
+
+  defp releases do
+    [
+      prod: [
+        include_executables_for: [:unix],
+        applications: [jsx: :permanent],
+        config_providers: [
+          {TomlConfigProvider, "/app/config.toml"}
+        ],
+        steps: [:assemble, :tar],
+        path: "/app/release"
+      ]
     ]
   end
 end

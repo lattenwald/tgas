@@ -8,39 +8,55 @@ Remove spam messages and chats with spammers, logging them in the process, savin
 
 ## Configuration
 
-Take a look at `config/secret.exs.sample`. Copy it to `config/secret.exs`, fill in the details.
+Take a look at `config.toml.sample`. Copy it somewhere as `config.toml`, fill in the details.
+You'll need `api_id` and `api_hash` from [my.telegram.org](https://my.telegram.org).
 
-`:tdlib db_dir` is in important place where `tdlib` data will be stored, it is important to keep it secure as anyone who fetches it will have full access to your Telegram account.
+## Running in docker
 
-## Installation
+Docker image built with provided `Dockerfile` has following mount points:
 
-Have `libtdjson.so` from [tdlib](https://github.com/tdlib/td) installed in your library path (tested with `v1.6.0`, should work with newer versions).
+1. `/app/db` — tdlib database, including but not limited to authorization data
+2. `/app/config.toml` — your configuration
+3. `/app/erl_crash.dump` — crash dump if needed (optional)
+4. `/app/log` — some logs (optional)
 
-Have [Rust](https://rustup.rs/) installed.
+### Building
 
-Have [Elixir](https://elixir-lang.org/) installed.
+    docker build -t tgas .
 
-    $ cd tgas
-    $ mix deps.get
-    $ MIX_ENV=prod mix release
+or
 
-Now `./_build/prod/rel/tgas` will have your release unpacked, and
-`_build/prod/rel/tgas/releases/0.1.0/tgas.tar.gz` (assuming your release version is `0.1.0`)
-is the location deployable archive, with `bin/tgas` being runner script.
+    ./build.sh
 
-## Authorization
+## First run, authorization
 
-You'll need to authorize first. Once done authorization will not be needed anymore provided your `:tdlib db_dir` is not deleted.
+    docker run \
+      -v `pwd`/config.toml:/app/config.toml \
+      -v `pwd`/db:/app/db \
+      -i -t tgas \
+      start_iex
 
-    $ ./bin/tgas console
-    > :tdlib.phone_number :tgas, "+12345678"
-    > :tdlib.auth_code :tgas, "23456"
-    > :tdlib.auth_password :tgas, "yourPassword"
+or
 
-Due to lack of motivation to do stuff properly you'll have to Ctrl+C out of there and run it again after authorization.
+    ./run.sh start_iex
+
+You need to authorize
+
+    iex> :tdlib.phone_number :tgas, "+12345678"
+    iex> :tdlib.auth_code :tgas, "23456"
+    iex> :tdlib.auth_password :tgas, "yourPassword"
 
 ## Running
 
-Just use `./bin/tgas` in your release. You can use it to run it daemonized, in foreground or
-with `IEx` console attached; also you can connect (see `remote_console` command) to
-already running instance. Run without arguments to see available options.
+    docker run \
+      -v `pwd`/config.toml:/app/config.toml \
+      -v `pwd`/db:/app/db \
+      -i -t tgas
+
+or
+
+    ./run.sh
+
+For options run
+
+    ./run.sh help

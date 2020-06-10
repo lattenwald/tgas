@@ -22,7 +22,7 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 tgas-*.tar
 
-/config/*secret.exs
+/config.toml
 /tdlib.log*
 /.formatter.exs
 /db

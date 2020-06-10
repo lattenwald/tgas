@@ -1,0 +1,9 @@
+[tgas]
+# optional, remove/comment this if not needed
+# if present, all spam messages will be forwarder here along with sender info
+# spam_chat = -10014630656431
+
+[tdlib]
+# obtain your api_id and api_hash at https://my.telegram.org/auth
+api_id = "xxxxx"
+api_hash = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
