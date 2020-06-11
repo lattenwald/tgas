@@ -55,6 +55,48 @@ defmodule Tgas.Session do
     end)
   end
 
+  def getChats() do
+    getChats(9_223_372_036_854_775_807, [])
+    |> Enum.map(fn chat -> {chat["title"], chat["id"]} end)
+    |> Enum.into(%{})
+  end
+
+  def findChat(regex) do
+    getChats()
+    |> Enum.filter(fn {k, _v} -> String.match?(k, regex) end)
+  end
+
+  defp getChats(offset, acc) do
+    chat_ids =
+      Tgas.Handler.list_to_map(
+        Tgas.Session.send_sync(%{
+          "@type" => "getChats",
+          "limit" => 100,
+          "offset_order" => offset
+        })
+      )["chat_ids"]
+
+    case chat_ids do
+      [] ->
+        acc
+
+      nil ->
+        acc
+
+      [_ | _] ->
+        chats =
+          chat_ids
+          |> Enum.map(fn chat_id ->
+            Tgas.Handler.list_to_map(
+              Tgas.Session.send_sync(%{"@type" => "getChat", "chat_id" => chat_id})
+            )
+          end)
+
+        next_offset = List.last(chats)["order"]
+        getChats(next_offset, acc ++ chats)
+    end
+  end
+
   def send_sync(request) do
     request = request |> Enum.into([])
     :tdlib.send_sync(@session, request)

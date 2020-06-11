@@ -1,6 +1,5 @@
 defmodule Tgas.Handler do
   @outdated 60
-  @spam Application.get_env(:tgas, :spam_chat)
 
   use GenServer
 
@@ -96,11 +95,12 @@ defmodule Tgas.Handler do
         {:incoming, type = "updateMessageSendSucceeded", data},
         state = %{on_sent: on_sent}
       ) do
-    Logger.info(fn -> "#{type} #{inspect(data)}" end)
+    Logger.debug(fn -> "#{type} #{inspect(data)}" end)
     data = data |> list_to_map |> Map.delete("@extra")
 
     with {:ok, old_id} <- Map.fetch(data, "old_message_id"),
          {:ok, reaction} <- Map.fetch(on_sent, old_id) do
+      Logger.info(fn -> "#{type} old_message_id:#{old_id} has reaction" end)
       spawn(fn -> reaction.(data) end)
       {:noreply, %{state | on_sent: Map.delete(on_sent, old_id)}}
     else
@@ -130,58 +130,63 @@ defmodule Tgas.Handler do
 
   def utf16_len(text), do: utf16_len(text, 0)
   defp utf16_len(<<>>, len), do: len
+
   defp utf16_len(<<char::utf8, rest::binary>>, len) do
     size = trunc(byte_size(<<char::utf16>>) / 2)
     utf16_len(rest, len + size)
   end
 
-  defp save_to_spam(_, _) when is_nil(@spam), do: nil
-
   defp save_to_spam(user, msg_id) do
-    chat_id = user["id"]
+    case Application.get_env(:tgas, :spam_chat) do
+      nil ->
+        nil
 
-    forwarded =
-      list_to_map(
-        Tgas.Session.send_sync(%{
-          "@type" => "forwardMessages",
-          "chat_id" => @spam,
-          "from_chat_id" => chat_id,
-          "message_ids" => [msg_id]
-        })
-      )
+      spam_chat ->
+        chat_id = user["id"]
 
-    msg_id = hd(forwarded["messages"])["id"]
-    Logger.info(fn -> "forwarded: #{msg_id}" end)
+        forwarded =
+          list_to_map(
+            Tgas.Session.send_sync(%{
+              "@type" => "forwardMessages",
+              "chat_id" => spam_chat,
+              "from_chat_id" => chat_id,
+              "message_ids" => [msg_id]
+            })
+          )
 
-    reaction = fn
-      %{"message" => %{"id" => msg_id}} ->
-        text = Poison.encode!(user, pretty: true)
+        msg_id = hd(forwarded["messages"])["id"]
+        Logger.info(fn -> "forwarded: #{msg_id}" end)
 
-        reply =
-          Tgas.Session.send_sync(%{
-            "@type" => "sendMessage",
-            "chat_id" => @spam,
-            "reply_to_message_id" => msg_id,
-            "input_message_content" => %{
-              "@type" => "inputMessageText",
-              "text" => %{
-                "@type" => "formattedText",
-                "text" => text,
-                "entities" => [
-                  %{
-                    "@type" => "textEntity",
-                    "offset" => 0,
-                    "length" => utf16_len(text),
-                    "type" => %{"@type" => "textEntityTypePreCode"}
+        reaction = fn
+          %{"message" => %{"id" => msg_id}} ->
+            text = Poison.encode!(user, pretty: true)
+
+            reply =
+              Tgas.Session.send_sync(%{
+                "@type" => "sendMessage",
+                "chat_id" => spam_chat,
+                "reply_to_message_id" => msg_id,
+                "input_message_content" => %{
+                  "@type" => "inputMessageText",
+                  "text" => %{
+                    "@type" => "formattedText",
+                    "text" => text,
+                    "entities" => [
+                      %{
+                        "@type" => "textEntity",
+                        "offset" => 0,
+                        "length" => utf16_len(text),
+                        "type" => %{"@type" => "textEntityTypePreCode"}
+                      }
+                    ]
                   }
-                ]
-              }
-            }
-          })
+                }
+              })
 
-        Logger.info(fn -> "sent user description: #{inspect(reply)}" end)
+            Logger.info(fn -> "sent user info about #{user["id"]}" end)
+        end
+
+        {msg_id, reaction}
     end
-
-    {msg_id, reaction}
   end
 end

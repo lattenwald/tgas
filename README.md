@@ -4,7 +4,7 @@ Telegram antispam
 
 ## Description
 
-Remove spam messages and chats with spammers, logging them in the process, saving spam messages and spamming users info to dedicated spam chat if configured.
+Remove spam messages and chats with spammers, logging them in the process, saving spam messages and senders info to dedicated spam chat if so configured.
 
 ## Configuration
 
@@ -45,6 +45,14 @@ You need to authorize
     iex> :tdlib.phone_number :tgas, "+12345678"
     iex> :tdlib.auth_code :tgas, "23456"
     iex> :tdlib.auth_password :tgas, "yourPassword"
+
+You can also list your chats here
+
+    iex> Tgas.Session.getChats
+
+... or find some specific chat by title, using regular expression
+
+    iex> Tgas.Session.findChat ~r/secret group/i
 
 ## Running
 

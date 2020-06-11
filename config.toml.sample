@@ -1,6 +1,7 @@
 [tgas]
-# optional, remove/comment this if not needed
-# if present, all spam messages will be forwarder here along with sender info
+## optional, remove/comment this if not needed
+## if present, all spam messages will be forwarded here along with sender info
+## see README on how to obtain chat id
 # spam_chat = -10014630656431
 
 [tdlib]
