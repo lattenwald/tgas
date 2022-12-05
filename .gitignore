@@ -29,3 +29,4 @@ tgas-*.tar
 /log
 /messages.log
 /.elixir_ls
+/config/local.exs

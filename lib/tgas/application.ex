@@ -6,16 +6,6 @@ defmodule Tgas.Application do
   use Application
 
   def start(_type, _args) do
-    case Application.get_env(:tdlib, :log_file) do
-      nil ->
-        :ok
-
-      log_file ->
-        :ok = :tdlib.set_log_file_path(log_file)
-    end
-
-    :tdlib.set_log_verbosity_level(5)
-
     children = [
       # Starts a worker by calling: Tgas.Worker.start_link(arg)
       # {Tgas.Worker, arg}

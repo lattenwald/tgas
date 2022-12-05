@@ -31,8 +31,6 @@ defmodule Tgas.Session do
 
     opts = [strategy: :rest_for_one]
 
-    :tdlib.set_log_verbosity_level(1)
-
     getMe()
 
     Supervisor.init(children, opts)
@@ -45,12 +43,12 @@ defmodule Tgas.Session do
       request = %{"@type" => "getMe"}
       me = send_sync(request)
 
-      case List.keyfind(me, "id", 0) do
-        {_, id} ->
-          Logger.info(fn -> "getMe id:#{id}" end)
+      case me do
+        %{"@type" => "error", "code" => code, "message" => message} ->
+          Logger.error(fn -> "#{code} : #{message}" end)
 
-        nil ->
-          Logger.warn(fn -> "No connection or no authorization" end)
+        %{"id" => id} ->
+          Logger.info(fn -> "getMe id:#{id}" end)
       end
     end)
   end

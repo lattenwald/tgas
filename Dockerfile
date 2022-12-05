@@ -1,4 +1,5 @@
-FROM alpine:3.12 AS build-tdlib
+# tdlib build
+FROM alpine:3.17 AS build-tdlib
 
 RUN apk add --no-cache \
     linux-headers \
@@ -11,7 +12,8 @@ RUN apk add --no-cache \
 
 WORKDIR /tmp/_build_tdlib/
 
-RUN git clone https://github.com/tdlib/td.git /tmp/_build_tdlib/ --branch v1.6.0
+RUN git clone -n https://github.com/tdlib/td.git /tmp/_build_tdlib/
+RUN git checkout d581e0499a534a2b98474843289e2a77e15a1d2d # v1.8.8 2022-11-25
 
 RUN mkdir build
 WORKDIR /tmp/_build_tdlib/build/
@@ -21,8 +23,8 @@ RUN cmake --build .
 RUN make install
 
 
-
-FROM alpine:3.12 AS build-tgas
+# tgas build
+FROM alpine:3.17 AS build-tgas
 
 COPY --from=build-tdlib /usr/local/lib/libtd* /usr/local/lib/
 
@@ -35,7 +37,7 @@ RUN apk add --no-cache \
 
 ADD . /app
 WORKDIR /app
-RUN rm -rf _build deps
+RUN rm -rf _build deps config/local.exs
 
 ENV MIX_ENV prod
 RUN mix do local.hex --force, local.rebar --force
@@ -43,8 +45,8 @@ RUN mix deps.get
 RUN mix do deps.compile, compile, release
 
 
-
-FROM alpine:3.12
+# tgas
+FROM alpine:3.17
 
 RUN apk add --no-cache \
     gcc \

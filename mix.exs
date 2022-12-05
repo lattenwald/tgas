@@ -24,8 +24,8 @@ defmodule Tgas.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:tdlib, git: "https://github.com/lattenwald/erl-tdlib.git", tag: "v0.3.3"},
-      {:poison, "~> 4.0"},
+      {:tdlib, git: "https://github.com/lattenwald/erl-tdlib.git"},
+      {:poison, "~> 5.0"},
       {:toml_config_provider, "~> 0.2.0"}
     ]
   end
