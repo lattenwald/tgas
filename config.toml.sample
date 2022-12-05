@@ -3,8 +3,12 @@
 ## if present, all spam messages will be forwarded here along with sender info
 ## see README on how to obtain chat id
 # spam_chat = -10014630656431
+## by default it's false
+antispam_enabled = true
 
 [tdlib]
 # obtain your api_id and api_hash at https://my.telegram.org/auth
 api_id = "xxxxx"
 api_hash = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+log_file = "tdlib.log"
+log_size = 10000000
